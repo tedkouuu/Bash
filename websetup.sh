@@ -1,30 +1,38 @@
 #!/bin/bash
 # websetup.sh - Install Apache on Ubuntu and deploy a Tooplate template
 
+PACKAGE_MANAGER="apt"
+REQUIRED_PACKAGES="wget unzip apache2"
+WEB_SERVICE_NAME="apache2"
+STAGING_DIRECTORY="/tmp/webfiles"
+DOCUMENT_ROOT="/var/www/html"
+TEMPLATE_ZIP_URL="https://www.tooplate.com/zip-templates/2098_health.zip"
+TEMPLATE_ZIP_FILE="$(basename "$TEMPLATE_ZIP_URL")"
+TEMPLATE_DIRECTORY="${TEMPLATE_ZIP_FILE%.zip}"
+
 # 1) Install needed tools and Apache
-sudo apt update -y
-sudo apt install -y wget unzip apache2
+sudo ${PACKAGE_MANAGER} update -y
+sudo ${PACKAGE_MANAGER} install -y ${REQUIRED_PACKAGES}
 
 # 2) Start and enable Apache to run on boot
-sudo systemctl start apache2
-sudo systemctl enable apache2
+sudo systemctl start ${WEB_SERVICE_NAME}
+sudo systemctl enable ${WEB_SERVICE_NAME}
 
 # 3) Prepare a temp workspace
-mkdir -p /tmp/webfiles
-cd /tmp/webfiles
+mkdir -p "${STAGING_DIRECTORY}"
+cd "${STAGING_DIRECTORY}"
 
 # 4) Download and extract the template
-wget https://www.tooplate.com/zip-templates/2098_health.zip
-unzip -o 2098_health.zip
+wget "${TEMPLATE_ZIP_URL}"
+unzip -o "${TEMPLATE_ZIP_FILE}"
 
 # 5) Copy template files
-#    The extracted folder is '2098_health', not '2098_health.zip'
-sudo cp -r 2098_health/* /var/www/html/
+sudo cp -r "${TEMPLATE_DIRECTORY}/"* "${DOCUMENT_ROOT}/"
 
 # 6) Restart Apache to pick up changes
-sudo systemctl restart apache2
+sudo systemctl restart ${WEB_SERVICE_NAME}
 
 # 7) Cleanup
-rm -rf /tmp/webfiles
+rm -rf "${STAGING_DIRECTORY}"
 
 echo "Deployment complete. Open http://<server-ip>/ in your browser."
